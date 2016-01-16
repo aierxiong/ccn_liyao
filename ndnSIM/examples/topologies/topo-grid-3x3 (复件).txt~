@@ -1,0 +1,121 @@
+# topo-grid-3x3.txt
+
+#   /--------\	    /-\	        /-\
+#   |Consumer|<---->| |<------->| |
+#   \--------/	    \-/	        \-/
+#       ^   	     ^ 	         ^
+#       |            |           |   1Mbps/10ms delay
+#       v            v           v
+#      /-\          /-\         /-\
+#      | |<-------->| |<------->| |
+#      \-/          \-/         \-/
+#       ^   	     ^ 	         ^
+#       |            |           |
+#       v            v           v
+#      /-\	    /-\	     /--------\
+#      | |<-------->| |<---->|Producer|
+#      \-/          \-/      \--------/
+
+# any empty lines and lines starting with '#' symbol is ignored
+#
+# The file should contain exactly two sections: router and link, each starting with the corresponding keyword
+#
+# router section defines topology nodes and their relative positions (e.g., to use in visualizer)
+router
+
+# each line in this section represents one router and should have the following data
+# node   comment     yPos    xPos
+Node0    NA          5       1
+Node1    NA          5       2
+Node2    NA          5       3
+Node3    NA          5       4
+Node4    NA          5       5
+Node5    NA          5       6
+Node6    NA          5       7
+Node7    NA          5       8
+Node8    NA          5       9
+Node9    NA          5       10
+Node10   NA          5       11
+Node11   NA          5       12
+Node12   NA          5       13
+Node13   NA          4       3
+Node14   NA          3       3
+Node15   NA          2       3
+Node16   NA          4       4
+Node17   NA          3       4
+Node18   NA          2       4
+Node19   NA          1       4
+Node20   NA          4       5
+Node21   NA          3       5
+Node22   NA          2       5
+Node23   NA          4       7
+Node24   NA          3       7
+Node25   NA          2       7
+Node26   NA          1       7
+Node27   NA          4       8
+Node28   NA          3       8
+Node29   NA          4       10
+Node30   NA          3       10
+Node31   NA          2       10
+Node32   NA          1       10
+Node33   NA          4       11
+Node34   NA          3       11
+Node35   NA          6       4
+Node36   NA          7       4
+Node37   NA          8       4
+Node38   NA          9       4
+Node39   NA          6       5
+Node40   NA          6       6
+Node41   NA          6       7
+# Note that `node` can be any string. It is possible to access to the node by name using Names::Find, see examples.
+
+# link section defines point-to-point links between nodes and characteristics of these links
+link
+
+# Each line should be in the following format (only first two are required, the rest can be omitted)
+# srcNode   dstNode     bandwidth   metric  delay   queue
+# bandwidth: link bandwidth
+# metric: routing metric
+# delay:  link delay
+# queue:  MaxPackets for transmission queue on the link (both directions)
+Node0       Node1       1Mbps       1       10ms    10
+Node1       Node2       1Mbps       1       10ms    10
+Node2       Node3       1Mbps       1       10ms    10
+Node2       Node13       1Mbps       1       10ms    10
+Node13      Node14       1Mbps       1       10ms    10
+Node14      Node15       1Mbps       1       10ms    10
+Node3       Node16       1Mbps       1       10ms    10
+Node16      Node17       1Mbps       1       10ms    10
+Node16      Node20       1Mbps       1       10ms    10
+Node17      Node18       1Mbps       1       10ms    10
+Node18      Node19       1Mbps       1       10ms    10
+Node20      Node21       1Mbps       1       10ms    10
+Node21      Node22       1Mbps       1       10ms    10
+Node2       Node35       1Mbps       1       10ms    10
+Node35      Node36       1Mbps       1       10ms    10
+Node36      Node37       1Mbps       1       10ms    10
+Node37      Node38       1Mbps       1       10ms    10
+Node35      Node39       1Mbps       1       10ms    10
+Node39      Node40       1Mbps       1       10ms    10
+Node40      Node41       1Mbps       1       10ms    10
+Node3       Node4        1Mbps       1       10ms    10
+Node4       Node5        1Mbps       1       10ms    10
+Node5       Node6        1Mbps       1       10ms    10
+Node6       Node7        1Mbps       1       10ms    10
+Node6       Node23       1Mbps       1       10ms    10
+Node23      Node27       1Mbps       1       10ms    10
+Node23      Node24       1Mbps       1       10ms    10
+Node24      Node25       1Mbps       1       10ms    10
+Node25      Node26       1Mbps       1       10ms    10
+Node27      Node28       1Mbps       1       10ms    10
+Node7       Node8        1Mbps       1       10ms    10
+Node8       Node9        1Mbps       1       10ms    10
+Node9       Node29       1Mbps       1       10ms    10
+Node29      Node30       1Mbps       1       10ms    10
+Node29      Node33       1Mbps       1       10ms    10
+Node30      Node31       1Mbps       1       10ms    10
+Node31      Node32       1Mbps       1       10ms    10
+Node33      Node34       1Mbps       1       10ms    10
+Node9       Node10       1Mbps       1       10ms    10
+Node10      Node11       1Mbps       1       10ms    10
+Node11      Node12      1Mbps       1       10ms    10
