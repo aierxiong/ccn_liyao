@@ -42,8 +42,9 @@
  //20160115 maxhop end
 
  //20160116 replacerate start
- #include "ns3/ndnSIM/utils/ndn-fw-max-betw-tag.h"
- #include "ns3/ndnSIM/utils/ndn-fw-min-betw-tag.h" 
+ #include "ns3/ndnSIM/utils/ndn-fw-max-replacerate-tag.h"
+ #include "ns3/ndnSIM/utils/ndn-fw-min-replacerate-tag.h" 
+ //20160116 replacerate end 
 
 #include <boost/ref.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -181,6 +182,20 @@ Producer::OnInterest (Ptr<const Interest> interest)
       data->GetPayload ()->AddPacketTag (minBetwTag);
     }
     //20160114 end
+
+    //20160117 replacerate start
+     FwMaxReplacerateTag maxReplacerateTag;
+     if (interest->GetPayload ()->PeekPacketTag (maxReplacerateTag))
+    {
+      data->GetPayload ()->AddPacketTag (maxReplacerateTag);
+    }
+     FwMinReplacerateTag minReplacerateTag;
+     if (interest->GetPayload ()->PeekPacketTag (minReplacerateTag))
+    {
+      data->GetPayload ()->AddPacketTag (minReplacerateTag);
+    }
+    //20160117 replacerate end
+
   m_face->ReceiveData (data);
   m_transmittedDatas (data, this, m_face);
 }
