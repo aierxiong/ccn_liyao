@@ -66,6 +66,9 @@ main (int argc, char *argv[])
   //20151201--change
    // ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::CustomStrategy");
    //20151201--change
+  //20160119 start
+  ndnHelper.SetContentStore("ns3::ndn::cs::Lru","MaxSize","600");
+  //20160119 end
 
   ndnHelper.InstallAll ();
 
@@ -109,6 +112,10 @@ main (int argc, char *argv[])
   ndn::GlobalRoutingHelper::CalculateRoutes ();
 
   Simulator::Stop (Seconds (20.0));
+
+  //20160119 start
+   ndn::CsTracer::InstallAll ("cs-trace-1.txt", Seconds (1));
+   //20160119 end
 
   Simulator::Run ();
   Simulator::Destroy ();
