@@ -97,6 +97,25 @@ public:
   OnData (Ptr<Face> face,
           Ptr<Data> data);
 
+
+  //20160116 huiduguanlain start
+  //the bigger,the better
+  double
+  computeProp(uint32_t minBetw,uint32_t maxBetw,uint32_t nodeBetw);
+  //the smaller,the better
+  double
+  computeProp1(uint32_t minBetw,uint32_t maxBetw,uint32_t nodeBetw);
+  //the bigger,the better
+  double
+  computeProp(double minBetw,double maxBetw,double nodeBetw);
+  //the smaller,the better
+  double
+  computeProp1(double minBetw,double maxBetw,double nodeBetw);
+  double
+  PropSum(double *p, double *a);
+  //20160116 huiduguanlian end
+
+
   /**
    * @brief Event fired just before PIT entry is removed by timeout
    * @param pitEntry PIT entry to be removed
@@ -441,6 +460,10 @@ protected:
   bool m_cacheUnsolicitedDataFromApps;
   bool m_cacheUnsolicitedData;
   bool m_detectRetransmissions;
+
+  //20160118 interest hop start
+  int hopcountin;
+  //20160118 interest hop end
 
   TracedCallback<Ptr<const Interest>,
                  Ptr<const Face> > m_outInterests; ///< @brief Transmitted interests trace

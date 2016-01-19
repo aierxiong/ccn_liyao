@@ -45,7 +45,10 @@
  //20160115 maxhop start
 #include "ns3/ndnSIM/utils/ndn-fw-max-hop-tag.h"
  //20160115 maxhop end
-
+ //20160116  replacerate start
+ #include "ns3/ndnSIM/utils/ndn-fw-max-replacerate-tag.h"
+ #include "ns3/ndnSIM/utils/ndn-fw-min-replacerate-tag.h"
+ //20160116  replacerate end
 #include <boost/ref.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -53,7 +56,12 @@
 #include <boost/tuple/tuple.hpp>
 
  //20160113 start 
+ #include <math.h>
+ #include <fstream>
  #include <iostream>
+ #include <ctime>
+//20160117 start
+ #define DIM_SUM 3
  using namespace std;
  //20160113 end
 namespace ll = boost::lambda;
@@ -169,6 +177,15 @@ ForwardingStrategy::OnInterest (Ptr<Face> inFace,
   // std::cout << "  nodebetw " << nodeBetw <<std::endl;
   //20160113 end
 
+  //20160118 interest hopstart
+   FwHopCountTag hopCountTag;
+  if (interest->GetPayload ()->PeekPacketTag (hopCountTag))
+        {
+          hopcountin= hopCountTag.Get();
+        }
+  std::cout << " node " <<inFace ->GetNode()->GetId()<< " interest hop " << hopcountin <<std::endl;
+  //20160118 interest hop end
+
   Ptr<pit::Entry> pitEntry = m_pit->Lookup (*interest);
   bool similarInterest = true;
   if (pitEntry == 0)
@@ -229,6 +246,19 @@ ForwardingStrategy::OnInterest (Ptr<Face> inFace,
           contentObject->GetPayload ()->AddPacketTag (minBetwTag);
         }
         //20160113 end
+
+        //20160116 replacerate start
+        FwMaxReplacerateTag maxReplacerateTag;
+        if (interest->GetPayload ()->PeekPacketTag (maxReplacerateTag))
+        {
+          contentObject->GetPayload ()->AddPacketTag (maxReplacerateTag);
+        }
+        FwMinReplacerateTag minReplacerateTag;
+        if (interest->GetPayload ()->PeekPacketTag (minReplacerateTag))
+        {
+          contentObject->GetPayload ()->AddPacketTag (minReplacerateTag);
+        }
+        //20160116 replacerate end
 
       pitEntry->AddIncoming (inFace/*, Seconds (1.0)*/);
 
@@ -294,7 +324,11 @@ ForwardingStrategy::OnData (Ptr<Face> inFace,
     }
   else
     {
-      //20160113 start
+      //20160116 start
+      bool cached = false;
+      //20160116 end
+
+      //20160113 start  betw
       FwMaxBetwTag maxBetwTag;
       double maxBetw = 0;
       double nodeBetw = inFace ->GetNode()->GetBetw();
@@ -313,7 +347,7 @@ ForwardingStrategy::OnData (Ptr<Face> inFace,
         minBetw = minBetwTag.GetMin();
         std::cout<<" node "<< inFace ->GetNode()->GetId()<<" minBetw "<< minBetw <<std::endl;
       }
-      //20160113 end
+      //20160113 end betw
 
       //20160115 maxhop start
       FwMaxHopTag maxHopTag;
@@ -325,7 +359,69 @@ ForwardingStrategy::OnData (Ptr<Face> inFace,
         }
         //20160115 maxhop end
 
-      bool cached = m_contentStore->Add (data);
+        //20160116 replacerate start
+        FwMaxReplacerateTag maxReplacerateTag;
+        FwMinReplacerateTag minReplacerateTag;
+        double maxReplacerate = 0.0, minReplacerate = 0.0;
+        double nodeReplacerate = inFace->GetNode()->GetReplaceRate();
+        if (data->GetPayload ()->PeekPacketTag (maxReplacerateTag))
+        {
+          maxReplacerate = maxReplacerateTag.GetMax();
+          std::cout<<" node "<< inFace ->GetNode()->GetId()<<"  maxReplacerate  "<< maxReplacerate <<std::endl;
+       
+        }
+        if (data->GetPayload ()->PeekPacketTag (minReplacerateTag))
+        {
+          minReplacerate = minReplacerateTag.GetMin();
+          std::cout<<" node "<< inFace ->GetNode()->GetId()<<"  minReplacerate  "<< minReplacerate <<std::endl;
+        }
+
+        //20160116 replacerate end
+
+        //huuiduguanlian start 20160117
+        double prop[DIM_SUM];
+        prop[0] = computeProp1(0,m_maxHop,hopcountin);
+        prop[1] = computeProp1(minReplacerate, maxReplacerate, nodeReplacerate);
+        prop[2] = computeProp(minBetw, maxBetw, nodeBetw);
+        double coff[3] = {0.3,0.1,0.2};
+        if(nodeReplacerate > 0)
+        {
+          coff[0] = 0.1;
+          coff[1] = 0.15;
+          coff[2] = 0.1;
+        }
+        double propsum = PropSum(prop,coff);
+        std::cout << " node " << inFace->GetNode()->GetId()<<" prop is "<< propsum <<std::endl;
+        double p = (float)rand()/RAND_MAX;
+        //huiduguanlain end 20160117
+        //get replacerate 20160117 start
+        ifstream infile;
+        infile.open("eraseCount.txt");
+        if(!infile)
+        {
+          std::cout << "opening the file failed !" <<std::endl;
+        }
+        else
+        {
+          while(!infile.eof())
+          {
+            uint32_t count;
+            double replaceRate;
+            infile >> count;
+            double time_run = Simulator::Now().GetSeconds();
+            replaceRate = count/(time_run);
+            inFace->GetNode()->SetReplaceRate(replaceRate);
+          }
+
+        }
+         infile.close();
+         //get replacerate 20170117 end
+      //    //20160118 right 
+      // bool cached = m_contentStore->Add (data);
+      // //20160118 end
+         //20160118 change
+         cached = m_contentStore->Add (data);
+         //20160118 change
       DidReceiveSolicitedData (inFace, data, cached);
     }
 
@@ -341,6 +437,101 @@ ForwardingStrategy::OnData (Ptr<Face> inFace,
       pitEntry = m_pit->Lookup (*data);
     }
 }
+
+//20170117huiduguanlianjisuan start
+double 
+ForwardingStrategy::computeProp(uint32_t minBetw,uint32_t maxBetw,uint32_t nodeBetw)
+{
+  double defultValue = 0.5;
+  uint32_t maxDifference = maxBetw -minBetw ;
+  uint32_t deta = nodeBetw - minBetw ;
+  double prop ;
+  if (maxDifference == 0)
+  {
+    prop = 0.3;
+  }
+  else
+  {
+    double normalDeta = (double) deta /maxDifference ;
+    prop = (double) defultValue/(1 - normalDeta + defultValue);
+  }
+  return prop;
+}
+
+double 
+ForwardingStrategy::computeProp1(uint32_t minBetw,uint32_t maxBetw,uint32_t nodeBetw)
+{
+  double defultValue = 0.5;
+  uint32_t maxDifference = maxBetw -minBetw ;
+  uint32_t deta = maxBetw - nodeBetw;
+  double prop ;
+  if (maxDifference == 0)
+  {
+    prop = 0.3;
+  }
+  else
+  {
+    double normalDeta = (double) deta /maxDifference ;
+    prop = (double) defultValue/(1 - normalDeta + defultValue);
+  }
+  return prop;
+}
+
+double 
+ForwardingStrategy::computeProp(double minBetw,double maxBetw,double nodeBetw)
+{
+  double defultValue = 0.5;
+  double maxDifference = maxBetw -minBetw ;
+  double deta = nodeBetw - minBetw ;
+  double prop ;
+  if (maxDifference == 0)
+  {
+    prop = 0.3;
+  }
+  else
+  {
+    double normalDeta = (double) deta /maxDifference ;
+    prop = (double) defultValue/(1 - normalDeta + defultValue);
+  }
+  return prop;
+}
+
+double 
+ForwardingStrategy::computeProp1(double minBetw,double maxBetw,double nodeBetw)
+{
+  double defultValue = 0.5;
+  double maxDifference = maxBetw -minBetw ;
+  double deta = maxBetw - nodeBetw;
+  double prop ;
+  if (maxDifference == 0)
+  {
+    prop = 0.3;
+  }
+  else
+  {
+    double normalDeta = (double) deta /maxDifference ;
+    prop = (double) defultValue/(1 - normalDeta + defultValue);
+  }
+  return prop;
+}
+
+double
+ForwardingStrategy::PropSum(double *p, double *a)
+{
+  double sum = 0.0, prop, weight;
+  for(int i = 0; i < DIM_SUM ; i++)
+  {
+    prop = *p;
+    weight = *a;
+    sum += prop * weight;
+    p++;
+    a++;
+  }
+  return sum;
+}
+//20160117 huiduguanlainjisuan end
+
+
 
 void
 ForwardingStrategy::DidCreatePitEntry (Ptr<Face> inFace,
